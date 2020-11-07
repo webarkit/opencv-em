@@ -2,6 +2,10 @@
 
 # Get our location.
 OURDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+BUILD_HOME="${OURDIR}/build_wasm"
+BUILD_NAME="opencv-em"
+VERSION="4.5.0-beta"
+BUILD_NAME_VERSION=${BUILD_NAME}-${VERSION}
 
 EM_FLAGS="-s WASM=1 -s USE_PTHREADS=0 "
 EM_TOOLCHAIN="$EMSCRIPTEN/cmake/Modules/Platform/Emscripten.cmake"
@@ -17,8 +21,46 @@ echo "Building OpenCV for the web with Emscripten"
 if [ ! -d "build_wasm" ] ; then
   mkdir build_wasm
 fi
-cd build_wasm
-cmake ../opencv -GNinja -DCMAKE_TOOLCHAIN_FILE=$EM_TOOLCHAIN $OPENCV_CONF $OPENCV_INTRINSICS -DCMAKE_CXX_FLAGS="$EM_FLAGS" -DCMAKE_C_FLAGS="$EM_FLAGS"
-ninja -v
+cd opencv
+python ./platforms/js/build_js.py ../build_wasm --build_wasm
+#cmake ../opencv -GNinja -DCMAKE_TOOLCHAIN_FILE=$EM_TOOLCHAIN $OPENCV_CONF $OPENCV_INTRINSICS -DCMAKE_CXX_FLAGS="$EM_FLAGS" -DCMAKE_C_FLAGS="$EM_FLAGS"
+#ninja -v
 
-echo "OpenCV libs successfully built!"
+echo "Opencv.js and static libs successfully built!"
+echo "Packagings libs and includes in a .zip file"
+
+cd ..
+    TARGET_DIR="./packaging/opencv-em"
+    if [ -d ${TARGET_DIR} ] ; then
+        rm -rf ${TARGET_DIR}
+    fi
+
+    # incase we need excludes later: --exclude-from=${OURDIR}/android/excludes
+    rsync -ar --files-from=./packaging/bom ${BUILD_HOME} ${TARGET_DIR}
+
+    destdir=${TARGET_DIR}/em-flags.txt
+    touch $destdir
+
+    if [ -f "$destdir" ]
+    then
+        echo "Writing file"
+        echo "$EM_FLAGS" > "$destdir"
+    fi
+
+    # TODO: copy and zip all the includes
+    rsync -ra -R opencv/modules/calib3d/include ${TARGET_DIR}
+    rsync -ra -R opencv/modules/core/include ${TARGET_DIR}
+    rsync -ra -R opencv/modules/dnn/include ${TARGET_DIR}
+    rsync -ra -R opencv/modules/features2d/include ${TARGET_DIR}
+    rsync -ra -R opencv/modules/flann/include ${TARGET_DIR}
+    rsync -ra -R opencv/modules/highgui/include ${TARGET_DIR}
+    rsync -ra -R opencv/modules/imgcodecs/include ${TARGET_DIR}
+    rsync -ra -R opencv/modules/imgproc/include ${TARGET_DIR}
+    rsync -ra -R opencv/modules/video/include ${TARGET_DIR}
+
+    #Package all into a zip file
+    cd ./packaging/
+    zip --filesync -r "${BUILD_NAME_VERSION}.zip" ./opencv-em
+    #Clean up
+    cd ..
+    # rm -rf ${TARGET_DIR}
