@@ -2,7 +2,7 @@
 
 # Get our location.
 OURDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-BUILD_HOME="${OURDIR}/build_wasm"
+BUILD_HOME="${OURDIR}/opencv/build_wasm"
 BUILD_NAME="opencv-em"
 VERSION="4.5.0-beta"
 BUILD_NAME_VERSION=${BUILD_NAME}-${VERSION}
@@ -33,7 +33,7 @@ echo "Opencv.js and static libs successfully built!"
 echo "Packagings libs and includes in a .zip file"
 
 cd ..
-    TARGET_DIR="./packaging/opencv-em"
+    TARGET_DIR="./packaging/build_wasm"
     if [ -d ${TARGET_DIR} ] ; then
         rm -rf ${TARGET_DIR}
     fi
@@ -63,7 +63,7 @@ cd ..
 
     #Package all into a zip file
     cd ./packaging/
-    zip --filesync -r "${BUILD_NAME_VERSION}.zip" ./opencv-em
+    zip --filesync -r "${BUILD_NAME_VERSION}.zip" ./build_wasm
     #Clean up
     cd ..
     # rm -rf ${TARGET_DIR}

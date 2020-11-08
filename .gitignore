@@ -1,2 +1,6 @@
 packaging/opencv-em
+packaging/opencv.js
+packaging/opencv_js.js
 packaging/opencv-em-*.zip
+packaging/opencv.js-*.zip
+packaging/build_wasm
