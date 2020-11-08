@@ -17,12 +17,14 @@ OPENCV_MODULES_EXCLUDE="-DBUILD_opencv_imgcodecs=OFF -DBUILD_opencv_ml=OFF -DBUI
 OPENCV_MODULES_INCLUDE="-DBUILD_opencv_calib3d=ON -DBUILD_opencv_dnn=ON -DBUILD_opencv_features2d=ON -DBUILD_opencv_flann=ON -DBUILD_opencv_objdetect=ON -DBUILD_opencv_photo=ON "
 # OPENCV_JS="-DBUILD_opencv_js=ON "
 OPENCV_CONF="${OPENCV_DEFINES} ${OPENCV_EXCLUDE} ${OPENCV_INCLUDE} ${OPENCV_MODULES_EXCLUDE} ${OPENCV_MODULES_INCLUDE} ${OPENCV_JS} -DBUILD_opencv_apps=OFF -DBUILD_DOCS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_IPP_IW=OFF -DBUILD_PACKAGE=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DBUILD_WITH_DEBUG_INFO=OFF -DWITH_PTHREADS_PF=OFF -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF"
+
 echo "Building OpenCV for the web with Emscripten"
+
 cd opencv
 if [ ! -d "build_wasm" ] ; then
   mkdir build_wasm
 fi
-#cd opencv
+
 python ./platforms/js/build_js.py build_wasm --build_wasm
 #cmake ../opencv -GNinja -DCMAKE_TOOLCHAIN_FILE=$EM_TOOLCHAIN $OPENCV_CONF $OPENCV_INTRINSICS -DCMAKE_CXX_FLAGS="$EM_FLAGS" -DCMAKE_C_FLAGS="$EM_FLAGS"
 #ninja -v

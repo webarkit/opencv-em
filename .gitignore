@@ -1,4 +1,2 @@
-build_wasm/
-build_wasm/*
 packaging/opencv-em
 packaging/opencv-em-*.zip
