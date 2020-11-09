@@ -2,6 +2,36 @@
 
 # Get our location.
 OURDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+function usage () {
+    echo "Usage: $(basename $0) (cmake | python)"
+    exit 1
+}
+
+if [ $# -eq 0 ]; then
+    usage
+fi
+
+# -e = exit on errors
+set -e
+
+while test $# -gt 0
+do
+    case "$1" in
+        cmake) BUILD_CMAKE=1
+            ;;
+        python) BUILD_PYTHON=1
+            ;;
+        --*) echo "bad option $1"
+            usage
+            ;;
+        *) echo "bad argument $1"
+            usage
+            ;;
+    esac
+    shift
+done
+
 BUILD_HOME="${OURDIR}/opencv/build_wasm"
 BUILD_NAME="opencv-em"
 VERSION="4.5.0-beta"
@@ -25,21 +55,34 @@ if [ ! -d "build_wasm" ] ; then
   mkdir build_wasm
 fi
 
-python ./platforms/js/build_js.py build_wasm --build_wasm
-#cmake ../opencv -GNinja -DCMAKE_TOOLCHAIN_FILE=$EM_TOOLCHAIN $OPENCV_CONF $OPENCV_INTRINSICS -DCMAKE_CXX_FLAGS="$EM_FLAGS" -DCMAKE_C_FLAGS="$EM_FLAGS"
-#ninja -v
+if [ $BUILD_PYTHON ] ; then
+  python ./platforms/js/build_js.py build_wasm --build_wasm
+fi
+# /BUILD_PYTHON
+
+if [ $BUILD_CMAKE ] ; then
+  cd ${OURDIR}/opencv/build_wasm
+  cmake .. -GNinja -DCMAKE_TOOLCHAIN_FILE=$EM_TOOLCHAIN $OPENCV_CONF $OPENCV_INTRINSICS -DCMAKE_CXX_FLAGS="$EM_FLAGS" -DCMAKE_C_FLAGS="$EM_FLAGS"
+  ninja -v
+fi
+# /BUILD_CMAKE
 
 echo "Opencv.js and static libs successfully built!"
 echo "Packagings libs and includes in a .zip file"
 
-cd ..
+cd ${OURDIR}
     TARGET_DIR="./packaging/build_wasm"
     if [ -d ${TARGET_DIR} ] ; then
         rm -rf ${TARGET_DIR}
     fi
 
-    # incase we need excludes later: --exclude-from=${OURDIR}/android/excludes
-    rsync -ar --files-from=./packaging/bom ${BUILD_HOME} ${TARGET_DIR}
+    # in case we need excludes later: --exclude-from=${OURDIR}/android/excludes
+    if [ $BUILD_CMAKE ] ; then
+      rsync -ar --files-from=./packaging/bom-cmake ${BUILD_HOME} ${TARGET_DIR}
+    fi
+    if [[ $BUILD_PYTHON ]]; then
+      rsync -ar --files-from=./packaging/bom-python ${BUILD_HOME} ${TARGET_DIR}
+    fi
 
     destdir=${TARGET_DIR}/em-flags.txt
     touch $destdir
