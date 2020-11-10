@@ -1,6 +1,6 @@
 # opencv-em
 
-A simple script utility to build with Emscripten OpenCV static libs. You can build the libs by yourself or grab them from a release (soon !)
+A simple script utility to build with Emscripten OpenCV static libs. You can build the libs by yourself or grab them from a [Release](https://github.com/webarkit/opencv-em/releases)
 
 ## Building OpenCV with Emscripten
 
@@ -23,4 +23,4 @@ Then you can run the build script:
 
 ## Pre-built binaries
 
-You don't need to build the libs you can grab from [Release](https://github.com/webarkit/opencv-em/releases) Wait.. THIS SOON!
+You don't need to build the libs you can grab from [Release](https://github.com/webarkit/opencv-em/releases)
