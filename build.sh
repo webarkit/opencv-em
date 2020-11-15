@@ -34,7 +34,7 @@ done
 
 BUILD_HOME="${OURDIR}/opencv/build_wasm"
 BUILD_NAME="opencv-em"
-VERSION="4.5.0-alpha"
+VERSION="4.5.0-alpha-rc1"
 BUILD_NAME_VERSION=${BUILD_NAME}-${VERSION}
 
 EM_FLAGS="-s WASM=1 -s USE_PTHREADS=0 "
