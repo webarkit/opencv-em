@@ -103,6 +103,7 @@ cd ${OURDIR}
     rsync -ra -R opencv/modules/objdetect/include ${TARGET_DIR}
     rsync -ra -R opencv/modules/photo/include ${TARGET_DIR}
     rsync -ra -R opencv/modules/video/include ${TARGET_DIR}
+    rsync -ra -R opencv/include/opencv2 ${TARGET_DIR}
 
     #Package all into a zip file
     cd ./packaging/
