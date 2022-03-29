@@ -23,4 +23,4 @@ Then you can run the build script:
 
 ## Pre-built binaries
 
-You don't need to build the libs you can grab from [Release](https://github.com/webarkit/opencv-em/releases)
+You don't need to build the libs you can grab from [Releases](https://github.com/webarkit/opencv-em/releases)
