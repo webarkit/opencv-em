@@ -33,7 +33,11 @@ do
 done
 
 BUILD_HOME="${OURDIR}/opencv/build_wasm"
+if [ $BUILD_PYTHON ] ; then
+BUILD_NAME="opencv-js"
+else
 BUILD_NAME="opencv-em"
+fi
 VERSION="4.5.0-emcc-3.1.26"
 BUILD_NAME_VERSION=${BUILD_NAME}-${VERSION}
 
