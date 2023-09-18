@@ -1,3 +1,6 @@
-[submodule "opencv"]
-	path = opencv
-	url = https://github.com/opencv/opencv.git
+[submodule "libs/opencv"]
+	path = libs/opencv
+	url = https://github.com/webarkit/opencv
+[submodule "libs/opencv_contrib"]
+	path = libs/opencv_contrib
+	url = https://github.com/webarkit/opencv_contrib
