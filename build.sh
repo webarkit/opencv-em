@@ -32,13 +32,14 @@ do
     shift
 done
 
-BUILD_HOME="${OURDIR}/opencv/build_wasm"
+#BUILD_HOME="${OURDIR}/libs/opencv/build_wasm"
+BUILD_HOME="${OURDIR}/opencv_js"
 if [ $BUILD_PYTHON ] ; then
 BUILD_NAME="opencv-js"
 else
 BUILD_NAME="opencv-em"
 fi
-VERSION="4.5.0-emcc-3.1.26"
+VERSION="4.7.0-emcc-3.1.26"
 BUILD_NAME_VERSION=${BUILD_NAME}-${VERSION}
 
 EM_FLAGS="-s WASM=1 -s USE_PTHREADS=0 "
@@ -54,13 +55,13 @@ OPENCV_CONF="${OPENCV_DEFINES} ${OPENCV_EXCLUDE} ${OPENCV_INCLUDE} ${OPENCV_MODU
 
 echo "Building OpenCV for the web with Emscripten"
 
-cd opencv
-if [ ! -d "build_wasm" ] ; then
-  mkdir build_wasm
-fi
+#cd libs/opencv
+#if [ ! -d "build_wasm" ] ; then
+#  mkdir build_wasm
+#fi
 
 if [ $BUILD_PYTHON ] ; then
-  python ./platforms/js/build_js.py build_wasm --build_wasm
+  docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten"  emscripten/emsdk:3.1.26 emcmake python3 ./libs/opencv/platforms/js/build_js.py opencv_js --config="./opencv.webarkit_config.py" --build_wasm --cmake_option="-DBUILD_opencv_dnn=OFF"  --cmake_option="-DBUILD_opencv_objdetect=OFF" --cmake_option="-DBUILD_opencv_photo=OFF" --cmake_option="-DBUILD_opencv_imgcodecs=ON" --cmake_option="-DBUILD_opencv_xfeatures2d=ON"  --cmake_option="-DOPENCV_EXTRA_MODULES_PATH=./../libs/opencv_contrib/modules/" --build_flags="-Oz -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0"
 fi
 # /BUILD_PYTHON
 
@@ -93,21 +94,19 @@ cd ${OURDIR}
 
     if [ -f "$destdir" ]
     then
-        echo "Writing file"
+        echo "Writing files"
         echo "$EM_FLAGS" > "$destdir"
     fi
 
     # TODO: copy and zip all the includes
-    rsync -ra -R opencv/modules/calib3d/include ${TARGET_DIR}
-    rsync -ra -R opencv/modules/core/include ${TARGET_DIR}
-    rsync -ra -R opencv/modules/dnn/include ${TARGET_DIR}
-    rsync -ra -R opencv/modules/features2d/include ${TARGET_DIR}
-    rsync -ra -R opencv/modules/flann/include ${TARGET_DIR}
-    rsync -ra -R opencv/modules/imgproc/include ${TARGET_DIR}
-    rsync -ra -R opencv/modules/objdetect/include ${TARGET_DIR}
-    rsync -ra -R opencv/modules/photo/include ${TARGET_DIR}
-    rsync -ra -R opencv/modules/video/include ${TARGET_DIR}
-    rsync -ra -R opencv/include/opencv2 ${TARGET_DIR}
+    rsync -ra -R libs/opencv/modules/calib3d/include ${TARGET_DIR}
+    rsync -ra -R libs/opencv/modules/core/include ${TARGET_DIR}
+    rsync -ra -R libs/opencv/modules/features2d/include ${TARGET_DIR}
+    rsync -ra -R libs/opencv/modules/flann/include ${TARGET_DIR}
+    rsync -ra -R libs/opencv/modules/imgproc/include ${TARGET_DIR}
+    rsync -ra -R libs/opencv/modules/video/include ${TARGET_DIR}
+    rsync -ra -R libs/opencv/include/opencv2 ${TARGET_DIR}
+    rsync -ra -R libs/opencv_contrib/modules/xfeatures2d/include ${TARGET_DIR}
 
     #Package all into a zip file
     cd ./packaging/
