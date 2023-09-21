@@ -18,6 +18,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: git submodule update --init
-    - run: sudo apt-get update && sudo apt install build-ninja
+    - run: sudo apt-get update && sudo apt install ninja-build
     - run: ./build.sh linux
     - run: echo "Done!"
