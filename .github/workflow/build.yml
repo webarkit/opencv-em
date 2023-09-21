@@ -28,4 +28,4 @@ jobs:
       run: echo name=tag::${GITHUB_REF#refs/*/} >> $GITHUB_OUTPUT
     - run: git submodule update --init
     - run: ./build.sh linux
-    
+    - run: echo "Done!"
