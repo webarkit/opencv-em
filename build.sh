@@ -33,7 +33,7 @@ do
 done
 
 BUILD_HOME=" "
-if [ BUILD_PYTHON ] ; then
+if [ $BUILD_PYTHON ] ; then
     BUILD_HOME="${OURDIR}/opencv_js"
 else
     BUILD_HOME="${OURDIR}/libs/opencv/build_wasm"
@@ -87,7 +87,7 @@ if [ $BUILD_CMAKE ] ; then
 fi
 # /BUILD_CMAKE
 
-if [ BUILD_PYTHON ] ; then
+if [ $BUILD_PYTHON ] ; then
     echo "Opencv.js and static libs successfully built!"
 else
     echo "Opencv static libs successfully built!"
