@@ -36,11 +36,11 @@ jobs:
         name: build
         path: |
           packaging/opencv-4.7.0.zip
-          packaging/opencv-4.7.0-emcc-3.1.26.zip
+          packaging/opencv-js-4.7.0-emcc-3.1.26.zip
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
        files: |
         packaging/opencv-4.7.0.zip
-        packaging/opencv-4.7.0-emcc-3.1.26.zip
+        packaging/opencv-js-4.7.0-emcc-3.1.26.zip
