@@ -19,10 +19,10 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - run: git submodule update --init
     - run: sudo apt-get update && sudo apt install ninja-build
+    - run: ./build.sh linux
+    - run: echo "Done!"
     - uses: actions/upload-artifact@v3
       with:
         name: build
         path: |
           packaging/opencv-4.7.0.zip
-    - run: ./build.sh linux
-    - run: echo "Done!"
