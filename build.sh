@@ -36,7 +36,7 @@ BUILD_HOME=" "
 if [ $BUILD_PYTHON ] ; then
     BUILD_HOME="${OURDIR}/opencv_js"
 else
-    BUILD_HOME="${OURDIR}/libs/opencv/build_wasm"
+    BUILD_HOME="${OURDIR}/libs/opencv/build_opencv"
 fi
 
 if [ $BUILD_PYTHON ] ; then
@@ -76,11 +76,11 @@ fi
 
 if [ $BUILD_CMAKE ] ; then
   cd libs/opencv
-  if [ ! -d "build_wasm" ] ; then
-    mkdir build_wasm
-    echo "mkdir build_wasm"
+  if [ ! -d "build_opencv" ] ; then
+    mkdir build_opencv
+    echo "mkdir build_opencv"
   fi
-  cd build_wasm
+  cd build_opencv
   echo "Building OpenCV with Ninja"
   cmake .. -GNinja $OPENCV_CONF $OPENCV_INTRINSICS -DCMAKE_CXX_FLAGS="$COMPILATION_FLAGS" -DCMAKE_C_FLAGS="$COMPILATION_FLAGS"
   ninja -v
@@ -96,7 +96,7 @@ fi
 echo "Packagings libs and includes in a .zip file..."
 
 cd ${OURDIR}
-    TARGET_DIR="./packaging/build_wasm"
+    TARGET_DIR="./packaging/build_opencv"
     if [ -d ${TARGET_DIR} ] ; then
         rm -rf ${TARGET_DIR}
     fi
@@ -128,9 +128,9 @@ cd ${OURDIR}
     rsync -ra -R libs/opencv/include/opencv2 ${TARGET_DIR}
     rsync -ra -R libs/opencv_contrib/modules/xfeatures2d/include ${TARGET_DIR}
 
-    #Package all into a zip file
+    # Package all into a zip file
     cd ./packaging/
-    zip --filesync -r "${BUILD_NAME_VERSION}.zip" ./build_wasm
-    #Clean up
+    zip --filesync -r "${BUILD_NAME_VERSION}.zip" ./build_opencv
+    # Clean up
     cd ..
-    # rm -rf ${TARGET_DIR}
+    rm -rf ${TARGET_DIR}
