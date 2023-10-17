@@ -43,6 +43,9 @@ else
     BUILD_HOME="${OURDIR}/libs/opencv/build_opencv"
 fi
 
+INSTALL_HOME_POSTFIX="libs/opencv/install_opencv"
+INSTALL_HOME_ABSOLUTE="${OURDIR}/${INSTALL_HOME_POSTFIX}"
+
 if [ $BUILD_PYTHON ] ; then
 BUILD_NAME="opencv-js"
 elif [ $BUILD_PYTHON_SIMD ] ; then
@@ -92,8 +95,9 @@ if [ $BUILD_CMAKE ] ; then
   fi
   cd build_opencv
   echo "Building OpenCV with Ninja"
-  cmake .. -GNinja $OPENCV_CONF $OPENCV_INTRINSICS -DCMAKE_CXX_FLAGS="$COMPILATION_FLAGS" -DCMAKE_C_FLAGS="$COMPILATION_FLAGS"
+  cmake .. -GNinja $OPENCV_CONF $OPENCV_INTRINSICS -DCMAKE_CXX_FLAGS="$COMPILATION_FLAGS" -DCMAKE_C_FLAGS="$COMPILATION_FLAGS" -DCMAKE_INSTALL_PREFIX="$INSTALL_HOME_ABSOLUTE"
   ninja -v
+  ninja install
 fi
 # /BUILD_CMAKE
 
@@ -129,17 +133,24 @@ cd ${OURDIR}
     fi
 
     # TODO: copy and zip all the includes
-    rsync -ra -R libs/opencv/modules/calib3d/include ${TARGET_DIR}
-    rsync -ra -R libs/opencv/modules/core/include ${TARGET_DIR}
-    rsync -ra -R libs/opencv/modules/features2d/include ${TARGET_DIR}
-    rsync -ra -R libs/opencv/modules/flann/include ${TARGET_DIR}
-    if [ $BUILD_CMAKE ] ; then
-      rsync -ra -R libs/opencv/modules/imgcodecs/include ${TARGET_DIR}
+    if [ -d "$INSTALL_HOME_ABSOLUTE" ]
+    then
+        echo "Copying installed includes"
+        rsync -ra $INSTALL_HOME_POSTFIX/include ${TARGET_DIR}
+    else
+        echo "Copying source includes"
+        rsync -ra -R libs/opencv/modules/calib3d/include ${TARGET_DIR}
+        rsync -ra -R libs/opencv/modules/core/include ${TARGET_DIR}
+        rsync -ra -R libs/opencv/modules/features2d/include ${TARGET_DIR}
+        rsync -ra -R libs/opencv/modules/flann/include ${TARGET_DIR}
+        if [ $BUILD_CMAKE ] ; then
+            rsync -ra -R libs/opencv/modules/imgcodecs/include ${TARGET_DIR}
+        fi
+        rsync -ra -R libs/opencv/modules/imgproc/include ${TARGET_DIR}
+        rsync -ra -R libs/opencv/modules/video/include ${TARGET_DIR}
+        rsync -ra -R libs/opencv/include/opencv2 ${TARGET_DIR}
+        rsync -ra -R libs/opencv_contrib/modules/xfeatures2d/include ${TARGET_DIR}
     fi
-    rsync -ra -R libs/opencv/modules/imgproc/include ${TARGET_DIR}
-    rsync -ra -R libs/opencv/modules/video/include ${TARGET_DIR}
-    rsync -ra -R libs/opencv/include/opencv2 ${TARGET_DIR}
-    rsync -ra -R libs/opencv_contrib/modules/xfeatures2d/include ${TARGET_DIR}
 
     # Package all into a zip file
     cd ./packaging/

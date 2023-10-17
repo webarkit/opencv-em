@@ -15,10 +15,15 @@ you need also to init the OpenCV submodule:
 ```
 git submodule update --init
 ```
-Then you can run the build script:
+Then you can run the build script (./build.sh) with either `linux` or `emscripten` configuration. 
+Note: If you'd like the include file structure to mimic a default OpenCV installation inside the generated archive for emscripten, you'll need to do both and start with a linux build:
 
 ```
-./build.sh
+./build.sh linux
+```
+Then, move on to the emscripten build:
+```
+./build.sh emscripten
 ```
 
 ## Pre-built binaries
