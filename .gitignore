@@ -5,4 +5,5 @@ packaging/opencv-*.zip
 packaging/opencv-js-*.zip
 packaging/build_opencv
 opencv_js
+opencv_js_simd
 .idea
