@@ -27,7 +27,7 @@ jobs:
           echo $RELEASE_VERSION
           echo ${{ steps.vars.outputs.tag }}
     - run: git submodule update --init
-    - run: sudo apt-get update && sudo apt install ninja-build
+    - run: sudo apt-get update && sudo apt install libjpeg-dev ninja-build
     - run: ./build.sh linux
     - run: ./build.sh emscripten
     - run: ./build.sh emscripten-simd
