@@ -6,6 +6,7 @@
 #
 # ARG_OPTIONAL_BOOLEAN([pthreads],[p],[Use pthreads-based parallel for and/or emscripten pthread optimizations ])
 # ARG_OPTIONAL_BOOLEAN([simd],[s],[Use intrinsic-based optimizations ])
+# ARG_OPTIONAL_BOOLEAN([canonical_includes],[i],[Use canonical include structure, if available (requires linux build before emscriten build)])
 # ARG_OPTIONAL_BOOLEAN([config_headers],[c],[Package config headers, i.e. opencv2/config.h and opencv2/opencv_modules.hpp],[on])
 # ARG_POSITIONAL_SINGLE([build_mode],[OpenCV build mode. May be one of {linux, emscripten}],[])
 # ARG_HELP([Build OpenCV & package build output in a zip file.])
@@ -27,7 +28,7 @@ die()
 
 begins_with_short_option()
 {
-    local first_option all_short_options='psch'
+    local first_option all_short_options='psich'
     first_option="${1:0:1}"
     test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
 }
@@ -37,16 +38,18 @@ _positionals=()
 # THE DEFAULTS INITIALIZATION - OPTIONALS
 _arg_pthreads="off"
 _arg_simd="off"
+_arg_canonical_includes="off"
 _arg_config_headers="on"
 
 
 print_help()
 {
     printf '%s\n' "Build OpenCV & package build output in a zip file."
-    printf 'Usage: %s [-p|--(no-)pthreads] [-s|--(no-)simd] [-c|--(no-)config_headers] [-h|--help] <build_mode>\n' "$0"
+    printf 'Usage: %s [-p|--(no-)pthreads] [-s|--(no-)simd] [-i|--(no-)canonical_includes] [-c|--(no-)config_headers] [-h|--help] <build_mode>\n' "$0"
     printf '\t%s\n' "<build_mode>: OpenCV build mode. May be one of {linux, emscripten}"
     printf '\t%s\n' "-p, --pthreads, --no-pthreads: Use pthreads-based parallel for and/or emscripten pthread optimizations  (off by default)"
     printf '\t%s\n' "-s, --simd, --no-simd: Use intrinsic-based optimizations  (off by default)"
+    printf '\t%s\n' "-i, --canonical_includes, --no-canonical_includes: Use canonical include structure, if available (off by default)"
     printf '\t%s\n' "-c, --config_headers, --no-config_headers: Package config headers, i.e. opencv2/config.h and opencv2/opencv_modules.hpp (on by default)"
     printf '\t%s\n' "-h, --help: Prints help"
 }
@@ -81,6 +84,18 @@ parse_commandline()
                 if test -n "$_next" -a "$_next" != "$_key"
                 then
                     { begins_with_short_option "$_next" && shift && set -- "-s" "-${_next}" "$@"; } || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
+                fi
+                ;;
+            -i|--no-canonical_includes|--canonical_includes)
+                _arg_canonical_includes="on"
+                test "${1:0:5}" = "--no-" && _arg_canonical_includes="off"
+                ;;
+            -i*)
+                _arg_canonical_includes="on"
+                _next="${_key##-i}"
+                if test -n "$_next" -a "$_next" != "$_key"
+                then
+                    { begins_with_short_option "$_next" && shift && set -- "-i" "-${_next}" "$@"; } || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
                 fi
                 ;;
             -c|--no-config_headers|--config_headers)
@@ -149,12 +164,6 @@ assign_positional_args 1 "${_positionals[@]}"
 # Get our location.
 OURDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-function usage () {
-    echo "Usage: $(basename $0) (linux | emscripten | emscripten-simd)"
-    echo "Options:"
-    exit 1
-}
-
 if [ $# -eq 0 ]; then
     usage
 fi
@@ -169,8 +178,6 @@ do
             ;;
         emscripten) BUILD_PYTHON=1
             ;;
-        emscripten-simd) BUILD_PYTHON_SIMD=1
-            ;;
         --*) echo "bad option $_arg_build_mode"
             print_help
             ;;
@@ -183,9 +190,11 @@ done
 
 BUILD_HOME=" "
 if [ $BUILD_PYTHON ] ; then
-    BUILD_HOME="${OURDIR}/opencv_js"
-elif [ $BUILD_PYTHON_SIMD ] ; then
-    BUILD_HOME="${OURDIR}/opencv_js_simd"
+    if [ "${_arg_simd}" = on ] ; then
+        BUILD_HOME="${OURDIR}/opencv_js"
+    else
+        BUILD_HOME="${OURDIR}/opencv_js_simd"
+    fi
 else
     BUILD_HOME="${OURDIR}/libs/opencv/build_opencv"
 fi
@@ -194,18 +203,20 @@ INSTALL_HOME_POSTFIX="libs/opencv/install_opencv"
 INSTALL_HOME_ABSOLUTE="${OURDIR}/${INSTALL_HOME_POSTFIX}"
 
 if [ $BUILD_PYTHON ] ; then
-BUILD_NAME="opencv-js"
-elif [ $BUILD_PYTHON_SIMD ] ; then
-BUILD_NAME="opencv-js-simd"
+    BUILD_NAME="opencv-js"
 else
-BUILD_NAME="opencv"
+    BUILD_NAME="opencv"
 fi
 
-OPENCV_VERSION_MAJOR=$(cat modules/core/include/opencv2/core/version.hpp | pcregrep -o1  '#define\sCV_VERSION_MAJOR\s+(\d+)')
-#__DEBUG
-echo OPENCV_VERSION_MAJOR
+OPENCV_VERSION_MAJOR=$(cat ${OURDIR}/libs/opencv/modules/core/include/opencv2/core/version.hpp | pcregrep -o1  '#define\sCV_VERSION_MAJOR\s+(\d+)')
+OPENCV_VERSION_MINOR=$(cat ${OURDIR}/libs/opencv/modules/core/include/opencv2/core/version.hpp | pcregrep -o1  '#define\sCV_VERSION_MINOR\s+(\d+)')
+OPENCV_VERSION_REVISION=$(cat ${OURDIR}/libs/opencv/modules/core/include/opencv2/core/version.hpp | pcregrep -o1  '#define\sCV_VERSION_REVISION\s+(\d+)')
+OPENCV_VERSION_STATUS="$(cat libs/opencv/modules/core/include/opencv2/core/version.hpp | pcregrep -o1  '#define\sCV_VERSION_STATUS\s+["](.*)["]')"
 
-OPENCV_VERSION="4.7.0"
+#__DEBUG
+echo ${OPENCV_VERSION}
+
+OPENCV_VERSION="${OPENCV_VERSION_MAJOR}.${OPENCV_VERSION_MINOR}.${OPENCV_VERSION_REVISION}"
 VERSION=""
 if [ $BUILD_PYTHON ] || [ $BUILD_PYTHON_SIMD ] ; then
     VERSION="${OPENCV_VERSION}-emcc-3.1.26"
@@ -219,8 +230,7 @@ COMPILATION_FLAGS=" -std=c++14"
 # not currently used, but may be used by passing `-DCMAKE_TOOLCHAIN_FILE="$EM_TOOLCHAIN"` to cmake
 EM_TOOLCHAIN="$EMSCRIPTEN/cmake/Modules/Platform/Emscripten.cmake"
 
-if [ "${_arg_simd}" = on ]
-then
+if [ "${_arg_simd}" = on ] ; then
     OPENCV_INTRINSICS="-DCV_ENABLE_INTRINSICS=ON"
     OPENCV_EM_INTRINSICES="--simd"
     BUILD_NAME_VERSION="${BUILD_NAME_VERSION}-simd"
@@ -228,8 +238,7 @@ else
     OPENCV_INTRINSICS="-DCV_ENABLE_INTRINSICS=OFF"
     OPENCV_EM_INTRINSICES=""
 fi
-if [ "${_arg_pthreads}" = on ]
-then
+if [ "${_arg_pthreads}" = on ] ; then
     OPENCV_PTHREDS="-DWITH_PTHREADS_PF=ON"
     OPENCV_EM_PTHREADS="--pthreads"
     BUILD_NAME_VERSION="${BUILD_NAME_VERSION}-pthreads"
@@ -244,7 +253,7 @@ OPENCV_EXCLUDE="-DBUILD_SHARED_LIBS=OFF -DBUILD_JAVA=OFF -DWITH_1394=OFF -DWITH_
 OPENCV_INCLUDE="-DBUILD_OPENJPEG=ON -DBUILD_ZLIB=ON"
 OPENCV_MODULES_EXCLUDE="-DBUILD_opencv_dnn=OFF -DBUILD_opencv_highgui=OFF -DBUILD_opencv_ml=OFF -DBUILD_opencv_objdetect=OFF -DBUILD_opencv_photo=OFF -DBUILD_opencv_python3=OFF -DBUILD_opencv_shape=OFF -DBUILD_opencv_stitching=OFF -DBUILD_opencv_superres=OFF -DBUILD_opencv_videoio=OFF -DBUILD_opencv_videostab=OFF"
 OPENCV_MODULES_INCLUDE="-DBUILD_opencv_calib3d=ON -DBUILD_opencv_core=ON -DBUILD_opencv_features2d=ON -DBUILD_opencv_flann=ON -DBUILD_opencv_imgcodecs=ON -DBUILD_opencv_video=ON "
-OPENCV_EXTRA_MODULES_EXCLUDE="-DBUILD_opencv_bgsegm=OFF -DBUILD_opencv_bioinspired=OFF -DBUILD_opencv_fuzzy=OFF -DBUILD_opencv_hfs=OFF -DBUILD_opencv_img_hash=OFF -DBUILD_opencv_intensity_transform=OFF -DBUILD_opencv_line_descriptor=OFF -DBUILD_opencv_optflow=OFF -DBUILD_opencv_phase_unwrapping=OFF -DBUILD_opencv_plot=OFF -DBUILD_opencv_rapid=OFF -DBUILD_opencv_reg=OFF -DBUILD_opencv_rgbd=OFF -DBUILD_opencv_saliency=OFF -DBUILD_opencv_stereo=OFF -DBUILD_opencv_structured_light=OFF -DBUILD_opencv_surface_matching=OFF -DBUILD_opencv_tracking=OFF -DBUILD_opencv_ximgproc=OFF -DBUILD_opencv_xobjdetect=OFF -DBUILD_opencv_xphoto=OFF" 
+OPENCV_EXTRA_MODULES_EXCLUDE="-DBUILD_opencv_bgsegm=OFF -DBUILD_opencv_bioinspired=OFF -DBUILD_opencv_fuzzy=OFF -DBUILD_opencv_hfs=OFF -DBUILD_opencv_img_hash=OFF -DBUILD_opencv_intensity_transform=OFF -DBUILD_opencv_line_descriptor=OFF -DBUILD_opencv_optflow=OFF -DBUILD_opencv_phase_unwrapping=OFF -DBUILD_opencv_plot=OFF -DBUILD_opencv_rapid=OFF -DBUILD_opencv_reg=OFF -DBUILD_opencv_rgbd=OFF -DBUILD_opencv_saliency=OFF -DBUILD_opencv_stereo=OFF -DBUILD_opencv_structured_light=OFF -DBUILD_opencv_surface_matching=OFF -DBUILD_opencv_tracking=OFF -DBUILD_opencv_ximgproc=OFF -DBUILD_opencv_xobjdetect=OFF -DBUILD_opencv_xphoto=OFF"
 OPENCV_EXTRA_MODULES_INCLUDE="-DBUILD_opencv_xfeatures2d=ON "
 OPENCV_EXTRA_MODULES_PATH=" -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules/xfeatures2d ../ "
 OPENCV_CONF="${OPENCV_DEFINES} ${OPENCV_EXCLUDE} ${OPENCV_INCLUDE} ${OPENCV_MODULES_EXCLUDE} ${OPENCV_EXTRA_MODULES_INCLUDE} ${OPENCV_EXTRA_MODULES_EXCLUDE} ${OPENCV_MODULES_INCLUDE} -DBUILD_opencv_apps=OFF -DBUILD_DOCS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_IPP_IW=OFF -DBUILD_PACKAGE=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DBUILD_WITH_DEBUG_INFO=OFF -DWITH_PTHREADS_PF=OFF -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF ${OPENCV_EXTRA_MODULES_PATH} "
@@ -263,11 +272,6 @@ if [ $BUILD_PYTHON ] ; then
    --build_flags="-Oz -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0"
 fi
 # /BUILD_PYTHON
-
-if [ $BUILD_PYTHON_SIMD ] ; then
-  echo "Building OpenCV for the web with Emscripten"
-  docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten"  emscripten/emsdk:3.1.26 emcmake python3 ./libs/opencv/platforms/js/build_js.py opencv_js_simd --config="./opencv.webarkit_config.py" --simd --build_wasm --cmake_option="-DBUILD_opencv_dnn=OFF"  --cmake_option="-DBUILD_opencv_objdetect=OFF" --cmake_option="-DBUILD_opencv_photo=OFF" --cmake_option="-DBUILD_opencv_imgcodecs=ON" --cmake_option="-DBUILD_opencv_xfeatures2d=ON"  --cmake_option="-DOPENCV_EXTRA_MODULES_PATH=./../libs/opencv_contrib/modules/" --build_flags="-Oz -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0"
-fi
 
 if [ $BUILD_CMAKE ] ; then
   cd libs/opencv
@@ -308,15 +312,13 @@ cd ${OURDIR}
     destdir=${TARGET_DIR}/em-flags.txt
     touch $destdir
 
-    if [ -f "$destdir" ]
-    then
+    if [ -f "$destdir" ] ; then
         echo "Writing files"
         echo "$EM_FLAGS" > "$destdir"
     fi
 
     # TODO: copy and zip all the includes
-    if [ -d "$INSTALL_HOME_ABSOLUTE" ]
-    then
+    if [ -d "$INSTALL_HOME_ABSOLUTE" ] && [ "${_arg_canonical_includes}" = on ] ; then
         echo "Copying installed includes"
         rsync -ra $INSTALL_HOME_POSTFIX/include ${TARGET_DIR}
     else
