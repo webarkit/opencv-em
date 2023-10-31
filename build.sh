@@ -189,12 +189,14 @@ do
 done
 
 BUILD_HOME=" "
+BUILD_HOME_BASE=""
 if [ $BUILD_PYTHON ] ; then
     if [ "${_arg_simd}" = off ] ; then
-        BUILD_HOME="${OURDIR}/opencv_js"
+        BUILD_HOME_BASE="opencv_js"
     else
-        BUILD_HOME="${OURDIR}/opencv_js_simd"
+        BUILD_HOME_BASE="opencv_js_simd"
     fi
+    BUILD_HOME="${OURDIR}/${BUILD_HOME_BASE}"
 else
     BUILD_HOME="${OURDIR}/libs/opencv/build_opencv"
 fi
@@ -237,7 +239,7 @@ else
 fi
 if [ "${_arg_pthreads}" = on ] ; then
     OPENCV_PTHREDS="-DWITH_PTHREADS_PF=ON"
-    OPENCV_EM_PTHREADS="--pthreads"
+    OPENCV_EM_PTHREADS="--threads"
     BUILD_NAME_VERSION="${BUILD_NAME_VERSION}-pthreads"
 else
     OPENCV_PTHREDS="-DWITH_PTHREADS_PF=OFF"
@@ -257,7 +259,7 @@ OPENCV_CONF="${OPENCV_DEFINES} ${OPENCV_EXCLUDE} ${OPENCV_INCLUDE} ${OPENCV_MODU
 
 if [ $BUILD_PYTHON ] ; then
   echo "Building OpenCV for the web with Emscripten"
-  docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten"  emscripten/emsdk:3.1.26 emcmake python3 ./libs/opencv/platforms/js/build_js.py opencv_js --config="./opencv.webarkit_config.py" --build_wasm \
+  docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten"  emscripten/emsdk:3.1.26 emcmake python3 ./libs/opencv/platforms/js/build_js.py ${BUILD_HOME_BASE} --config="./opencv.webarkit_config.py" --build_wasm \
    ${OPENCV_EM_INTRINSICES} \
    ${OPENCV_EM_PTHREADS} \
    --cmake_option="-DBUILD_opencv_dnn=OFF" \
