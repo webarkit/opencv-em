@@ -6,7 +6,7 @@
 #
 # ARG_OPTIONAL_BOOLEAN([pthreads],[p],[Use pthreads-based parallel for and/or emscripten pthread optimizations ])
 # ARG_OPTIONAL_BOOLEAN([simd],[s],[Use intrinsic-based optimizations ])
-# ARG_OPTIONAL_BOOLEAN([canonical_includes],[i],[Use canonical include structure, if available (requires linux build before emscriten build)])
+# ARG_OPTIONAL_BOOLEAN([canonical_includes],[i],[Use canonical include structure, if available])
 # ARG_OPTIONAL_BOOLEAN([config_headers],[c],[Package config headers, i.e. opencv2/config.h and opencv2/opencv_modules.hpp],[on])
 # ARG_POSITIONAL_SINGLE([build_mode],[OpenCV build mode. May be one of {linux, emscripten}],[])
 # ARG_HELP([Build OpenCV & package build output in a zip file.])
@@ -19,18 +19,18 @@
 
 die()
 {
-    local _ret="${2:-1}"
-    test "${_PRINT_HELP:-no}" = yes && print_help >&2
-    echo "$1" >&2
-    exit "${_ret}"
+	local _ret="${2:-1}"
+	test "${_PRINT_HELP:-no}" = yes && print_help >&2
+	echo "$1" >&2
+	exit "${_ret}"
 }
 
 
 begins_with_short_option()
 {
-    local first_option all_short_options='psich'
-    first_option="${1:0:1}"
-    test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
+	local first_option all_short_options='psich'
+	first_option="${1:0:1}"
+	test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
 }
 
 # THE DEFAULTS INITIALIZATION - POSITIONALS
@@ -44,111 +44,111 @@ _arg_config_headers="on"
 
 print_help()
 {
-    printf '%s\n' "Build OpenCV & package build output in a zip file."
-    printf 'Usage: %s [-p|--(no-)pthreads] [-s|--(no-)simd] [-i|--(no-)canonical_includes] [-c|--(no-)config_headers] [-h|--help] <build_mode>\n' "$0"
-    printf '\t%s\n' "<build_mode>: OpenCV build mode. May be one of {linux, emscripten}"
-    printf '\t%s\n' "-p, --pthreads, --no-pthreads: Use pthreads-based parallel for and/or emscripten pthread optimizations  (off by default)"
-    printf '\t%s\n' "-s, --simd, --no-simd: Use intrinsic-based optimizations  (off by default)"
-    printf '\t%s\n' "-i, --canonical_includes, --no-canonical_includes: Use canonical include structure, if available (off by default)"
-    printf '\t%s\n' "-c, --config_headers, --no-config_headers: Package config headers, i.e. opencv2/config.h and opencv2/opencv_modules.hpp (on by default)"
-    printf '\t%s\n' "-h, --help: Prints help"
+	printf '%s\n' "Build OpenCV & package build output in a zip file."
+	printf 'Usage: %s [-p|--(no-)pthreads] [-s|--(no-)simd] [-i|--(no-)canonical_includes] [-c|--(no-)config_headers] [-h|--help] <build_mode>\n' "$0"
+	printf '\t%s\n' "<build_mode>: OpenCV build mode. May be one of {linux, emscripten}"
+	printf '\t%s\n' "-p, --pthreads, --no-pthreads: Use pthreads-based parallel for and/or emscripten pthread optimizations  (off by default)"
+	printf '\t%s\n' "-s, --simd, --no-simd: Use intrinsic-based optimizations  (off by default)"
+	printf '\t%s\n' "-i, --canonical_includes, --no-canonical_includes: Use canonical include structure, if available (off by default)"
+	printf '\t%s\n' "-c, --config_headers, --no-config_headers: Package config headers, i.e. opencv2/config.h and opencv2/opencv_modules.hpp (on by default)"
+	printf '\t%s\n' "-h, --help: Prints help"
 }
 
 
 parse_commandline()
 {
-    _positionals_count=0
-    while test $# -gt 0
-    do
-        _key="$1"
-        case "$_key" in
-            -p|--no-pthreads|--pthreads)
-                _arg_pthreads="on"
-                test "${1:0:5}" = "--no-" && _arg_pthreads="off"
-                ;;
-            -p*)
-                _arg_pthreads="on"
-                _next="${_key##-p}"
-                if test -n "$_next" -a "$_next" != "$_key"
-                then
-                    { begins_with_short_option "$_next" && shift && set -- "-p" "-${_next}" "$@"; } || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
-                fi
-                ;;
-            -s|--no-simd|--simd)
-                _arg_simd="on"
-                test "${1:0:5}" = "--no-" && _arg_simd="off"
-                ;;
-            -s*)
-                _arg_simd="on"
-                _next="${_key##-s}"
-                if test -n "$_next" -a "$_next" != "$_key"
-                then
-                    { begins_with_short_option "$_next" && shift && set -- "-s" "-${_next}" "$@"; } || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
-                fi
-                ;;
-            -i|--no-canonical_includes|--canonical_includes)
-                _arg_canonical_includes="on"
-                test "${1:0:5}" = "--no-" && _arg_canonical_includes="off"
-                ;;
-            -i*)
-                _arg_canonical_includes="on"
-                _next="${_key##-i}"
-                if test -n "$_next" -a "$_next" != "$_key"
-                then
-                    { begins_with_short_option "$_next" && shift && set -- "-i" "-${_next}" "$@"; } || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
-                fi
-                ;;
-            -c|--no-config_headers|--config_headers)
-                _arg_config_headers="on"
-                test "${1:0:5}" = "--no-" && _arg_config_headers="off"
-                ;;
-            -c*)
-                _arg_config_headers="on"
-                _next="${_key##-c}"
-                if test -n "$_next" -a "$_next" != "$_key"
-                then
-                    { begins_with_short_option "$_next" && shift && set -- "-c" "-${_next}" "$@"; } || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
-                fi
-                ;;
-            -h|--help)
-                print_help
-                exit 0
-                ;;
-            -h*)
-                print_help
-                exit 0
-                ;;
-            *)
-                _last_positional="$1"
-                _positionals+=("$_last_positional")
-                _positionals_count=$((_positionals_count + 1))
-                ;;
-        esac
-        shift
-    done
+	_positionals_count=0
+	while test $# -gt 0
+	do
+		_key="$1"
+		case "$_key" in
+			-p|--no-pthreads|--pthreads)
+				_arg_pthreads="on"
+				test "${1:0:5}" = "--no-" && _arg_pthreads="off"
+				;;
+			-p*)
+				_arg_pthreads="on"
+				_next="${_key##-p}"
+				if test -n "$_next" -a "$_next" != "$_key"
+				then
+					{ begins_with_short_option "$_next" && shift && set -- "-p" "-${_next}" "$@"; } || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
+				fi
+				;;
+			-s|--no-simd|--simd)
+				_arg_simd="on"
+				test "${1:0:5}" = "--no-" && _arg_simd="off"
+				;;
+			-s*)
+				_arg_simd="on"
+				_next="${_key##-s}"
+				if test -n "$_next" -a "$_next" != "$_key"
+				then
+					{ begins_with_short_option "$_next" && shift && set -- "-s" "-${_next}" "$@"; } || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
+				fi
+				;;
+			-i|--no-canonical_includes|--canonical_includes)
+				_arg_canonical_includes="on"
+				test "${1:0:5}" = "--no-" && _arg_canonical_includes="off"
+				;;
+			-i*)
+				_arg_canonical_includes="on"
+				_next="${_key##-i}"
+				if test -n "$_next" -a "$_next" != "$_key"
+				then
+					{ begins_with_short_option "$_next" && shift && set -- "-i" "-${_next}" "$@"; } || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
+				fi
+				;;
+			-c|--no-config_headers|--config_headers)
+				_arg_config_headers="on"
+				test "${1:0:5}" = "--no-" && _arg_config_headers="off"
+				;;
+			-c*)
+				_arg_config_headers="on"
+				_next="${_key##-c}"
+				if test -n "$_next" -a "$_next" != "$_key"
+				then
+					{ begins_with_short_option "$_next" && shift && set -- "-c" "-${_next}" "$@"; } || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
+				fi
+				;;
+			-h|--help)
+				print_help
+				exit 0
+				;;
+			-h*)
+				print_help
+				exit 0
+				;;
+			*)
+				_last_positional="$1"
+				_positionals+=("$_last_positional")
+				_positionals_count=$((_positionals_count + 1))
+				;;
+		esac
+		shift
+	done
 }
 
 
 handle_passed_args_count()
 {
-    local _required_args_string="'build_mode'"
-    test "${_positionals_count}" -ge 1 || _PRINT_HELP=yes die "FATAL ERROR: Not enough positional arguments - we require exactly 1 (namely: $_required_args_string), but got only ${_positionals_count}." 1
-    test "${_positionals_count}" -le 1 || _PRINT_HELP=yes die "FATAL ERROR: There were spurious positional arguments --- we expect exactly 1 (namely: $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}')." 1
+	local _required_args_string="'build_mode'"
+	test "${_positionals_count}" -ge 1 || _PRINT_HELP=yes die "FATAL ERROR: Not enough positional arguments - we require exactly 1 (namely: $_required_args_string), but got only ${_positionals_count}." 1
+	test "${_positionals_count}" -le 1 || _PRINT_HELP=yes die "FATAL ERROR: There were spurious positional arguments --- we expect exactly 1 (namely: $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}')." 1
 }
 
 
 assign_positional_args()
 {
-    local _positional_name _shift_for=$1
-    _positional_names="_arg_build_mode "
+	local _positional_name _shift_for=$1
+	_positional_names="_arg_build_mode "
 
-    shift "$_shift_for"
-    for _positional_name in ${_positional_names}
-    do
-        test $# -gt 0 || break
-        eval "$_positional_name=\${1}" || die "Error during argument parsing, possibly an Argbash bug." 1
-        shift
-    done
+	shift "$_shift_for"
+	for _positional_name in ${_positional_names}
+	do
+		test $# -gt 0 || break
+		eval "$_positional_name=\${1}" || die "Error during argument parsing, possibly an Argbash bug." 1
+		shift
+	done
 }
 
 parse_commandline "$@"
@@ -190,7 +190,7 @@ done
 
 BUILD_HOME=" "
 if [ $BUILD_PYTHON ] ; then
-    if [ "${_arg_simd}" = off ] ; then
+    if [ "${_arg_simd}" = on ] ; then
         BUILD_HOME="${OURDIR}/opencv_js"
     else
         BUILD_HOME="${OURDIR}/opencv_js_simd"
@@ -203,19 +203,22 @@ INSTALL_HOME_POSTFIX="libs/opencv/install_opencv"
 INSTALL_HOME_ABSOLUTE="${OURDIR}/${INSTALL_HOME_POSTFIX}"
 
 if [ $BUILD_PYTHON ] ; then
-    BUILD_NAME="opencv-js"
+BUILD_NAME="opencv-js"
+elif [ $BUILD_PYTHON_SIMD ] ; then
+BUILD_NAME="opencv-js-simd"
 else
-    BUILD_NAME="opencv"
+BUILD_NAME="opencv"
 fi
 
-OPENCV_VERSION_MAJOR=$(cat ${OURDIR}/libs/opencv/modules/core/include/opencv2/core/version.hpp | pcregrep -o1  '#define\sCV_VERSION_MAJOR\s+(\d+)')
-OPENCV_VERSION_MINOR=$(cat ${OURDIR}/libs/opencv/modules/core/include/opencv2/core/version.hpp | pcregrep -o1  '#define\sCV_VERSION_MINOR\s+(\d+)')
-OPENCV_VERSION_REVISION=$(cat ${OURDIR}/libs/opencv/modules/core/include/opencv2/core/version.hpp | pcregrep -o1  '#define\sCV_VERSION_REVISION\s+(\d+)')
-OPENCV_VERSION_STATUS="$(cat libs/opencv/modules/core/include/opencv2/core/version.hpp | pcregrep -o1  '#define\sCV_VERSION_STATUS\s+["](.*)["]')"  
+OPENCV_VERSION_MAJOR=$(cat modules/core/include/opencv2/core/version.hpp | pcregrep -o1  '#define\sCV_VERSION_MAJOR\s+(\d+)')
 
-OPENCV_VERSION="${OPENCV_VERSION_MAJOR}.${OPENCV_VERSION_MINOR}.${OPENCV_VERSION_REVISION}"
+
+#__DEBUG
+echo OPENCV_VERSION_MAJOR
+
+OPENCV_VERSION="4.7.0"
 VERSION=""
-if [ $BUILD_PYTHON ] ; then
+if [ $BUILD_PYTHON ] || [ $BUILD_PYTHON_SIMD ] ; then
     VERSION="${OPENCV_VERSION}-emcc-3.1.26"
 else
     VERSION=${OPENCV_VERSION}
@@ -284,7 +287,7 @@ if [ $BUILD_CMAKE ] ; then
 fi
 # /BUILD_CMAKE
 
-if [ $BUILD_PYTHON ] ; then
+if [ $BUILD_PYTHON ] || [ $BUILD_PYTHON_SIMD ] ; then
     echo "Opencv.js and static libs successfully built!"
 else
     echo "Opencv static libs successfully built!"
