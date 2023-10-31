@@ -6,6 +6,7 @@
 #
 # ARG_OPTIONAL_BOOLEAN([pthreads],[p],[Use pthreads-based parallel for and/or emscripten pthread optimizations ])
 # ARG_OPTIONAL_BOOLEAN([simd],[s],[Use intrinsic-based optimizations ])
+# ARG_OPTIONAL_BOOLEAN([config_headers],[c],[Package config headers, i.e. opencv2/config.h and opencv2/opencv_modules.hpp],[on])
 # ARG_POSITIONAL_SINGLE([build_mode],[OpenCV build mode. May be one of {linux, emscripten}],[])
 # ARG_HELP([Build OpenCV & package build output in a zip file.])
 # ARGBASH_GO()
@@ -26,7 +27,7 @@ die()
 
 begins_with_short_option()
 {
-    local first_option all_short_options='psh'
+    local first_option all_short_options='psch'
     first_option="${1:0:1}"
     test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
 }
@@ -36,15 +37,17 @@ _positionals=()
 # THE DEFAULTS INITIALIZATION - OPTIONALS
 _arg_pthreads="off"
 _arg_simd="off"
+_arg_config_headers="on"
 
 
 print_help()
 {
     printf '%s\n' "Build OpenCV & package build output in a zip file."
-    printf 'Usage: %s [-p|--(no-)pthreads] [-s|--(no-)simd] [-h|--help] <build_mode>\n' "$0"
+    printf 'Usage: %s [-p|--(no-)pthreads] [-s|--(no-)simd] [-c|--(no-)config_headers] [-h|--help] <build_mode>\n' "$0"
     printf '\t%s\n' "<build_mode>: OpenCV build mode. May be one of {linux, emscripten}"
     printf '\t%s\n' "-p, --pthreads, --no-pthreads: Use pthreads-based parallel for and/or emscripten pthread optimizations  (off by default)"
     printf '\t%s\n' "-s, --simd, --no-simd: Use intrinsic-based optimizations  (off by default)"
+    printf '\t%s\n' "-c, --config_headers, --no-config_headers: Package config headers, i.e. opencv2/config.h and opencv2/opencv_modules.hpp (on by default)"
     printf '\t%s\n' "-h, --help: Prints help"
 }
 
@@ -78,6 +81,18 @@ parse_commandline()
                 if test -n "$_next" -a "$_next" != "$_key"
                 then
                     { begins_with_short_option "$_next" && shift && set -- "-s" "-${_next}" "$@"; } || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
+                fi
+                ;;
+            -c|--no-config_headers|--config_headers)
+                _arg_config_headers="on"
+                test "${1:0:5}" = "--no-" && _arg_config_headers="off"
+                ;;
+            -c*)
+                _arg_config_headers="on"
+                _next="${_key##-c}"
+                if test -n "$_next" -a "$_next" != "$_key"
+                then
+                    { begins_with_short_option "$_next" && shift && set -- "-c" "-${_next}" "$@"; } || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
                 fi
                 ;;
             -h|--help)
@@ -186,6 +201,10 @@ else
 BUILD_NAME="opencv"
 fi
 
+OPENCV_VERSION_MAJOR=$(cat modules/core/include/opencv2/core/version.hpp | pcregrep -o1  '#define\sCV_VERSION_MAJOR\s+(\d+)')
+#__DEBUG
+echo OPENCV_VERSION_MAJOR
+
 OPENCV_VERSION="4.7.0"
 VERSION=""
 if [ $BUILD_PYTHON ] || [ $BUILD_PYTHON_SIMD ] ; then
@@ -194,28 +213,31 @@ else
     VERSION=${OPENCV_VERSION}
 fi
 
-BUILD_NAME_VERSION=${BUILD_NAME}-${VERSION}
+BUILD_NAME_VERSION="${BUILD_NAME}-${VERSION}"
 
 COMPILATION_FLAGS=" -std=c++14"
 # not currently used, but may be used by passing `-DCMAKE_TOOLCHAIN_FILE="$EM_TOOLCHAIN"` to cmake
-EM_TOOLCHAIN="$EMSCRIPTEN/cmake/Modules/Platform/Emscripten.cmake" 
+EM_TOOLCHAIN="$EMSCRIPTEN/cmake/Modules/Platform/Emscripten.cmake"
 
-if ["$_arg_simd" = on]
+if [ "${_arg_simd}" = on ]
 then
     OPENCV_INTRINSICS="-DCV_ENABLE_INTRINSICS=ON"
     OPENCV_EM_INTRINSICES="--simd"
+    BUILD_NAME_VERSION="${BUILD_NAME_VERSION}-simd"
 else
-    OPENCV_INTRINSICS="-DCV_ENABLE_INTRINSICS=OFF" 
+    OPENCV_INTRINSICS="-DCV_ENABLE_INTRINSICS=OFF"
     OPENCV_EM_INTRINSICES=""
 fi
-if ["$_arg_pthreds" = on]
+if [ "${_arg_pthreads}" = on ]
 then
     OPENCV_PTHREDS="-DWITH_PTHREADS_PF=ON"
     OPENCV_EM_PTHREADS="--pthreads"
+    BUILD_NAME_VERSION="${BUILD_NAME_VERSION}-pthreads"
 else
     OPENCV_PTHREDS="-DWITH_PTHREADS_PF=OFF"
     OPENCV_EM_PTHREADS=""
-fi 
+fi
+
 OPENCV_CPU_OPTIMIZATIONS="-DCPU_BASELINE="" -DCPU_DISPATCH="""
 OPENCV_DEFINES="-DENABLE_PIC=FALSE"
 OPENCV_EXCLUDE="-DBUILD_SHARED_LIBS=OFF -DBUILD_JAVA=OFF -DWITH_1394=OFF -DWITH_ADE=OFF -DWITH_VTK=OFF -DWITH_EIGEN=OFF -DWITH_FFMPEG=OFF -DWITH_GSTREAMER=OFF -DWITH_GTK=OFF -DWITH_GTK_2_X=OFF -DWITH_IPP=OFF -DWITH_JASPER=OFF -DWITH_JPEG=OFF -DWITH_WEBP=OFF -DWITH_OPENEXR=OFF -DWITH_OPENGL=OFF -DWITH_OPENVX=OFF -DWITH_OPENNI=OFF -DWITH_OPENNI2=OFF -DWITH_PNG=OFF -DWITH_TBB=OFF -DWITH_TIFF=OFF -DWITH_V4L=OFF -DWITH_OPENCL=OFF -DWITH_OPENCL_SVM=OFF -DWITH_OPENCLAMDFFT=OFF -DWITH_OPENCLAMDBLAS=OFF -DWITH_GPHOTO2=OFF -DWITH_LAPACK=OFF -DWITH_ITT=OFF -DWITH_QUIRC=OFF -DCV_TRACE=OFF"
@@ -310,6 +332,11 @@ cd ${OURDIR}
         rsync -ra -R libs/opencv/modules/video/include ${TARGET_DIR}
         rsync -ra -R libs/opencv/include/opencv2 ${TARGET_DIR}
         rsync -ra -R libs/opencv_contrib/modules/xfeatures2d/include ${TARGET_DIR}
+    fi
+
+    if [ ${_arg_config_headers} = off ]
+    then
+        rm -rf ${TARGET_DIR}/opencv2
     fi
 
     # Package all into a zip file
