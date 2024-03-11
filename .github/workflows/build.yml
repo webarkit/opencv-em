@@ -30,7 +30,7 @@ jobs:
     - run: sudo apt-get update && sudo apt install pcregrep libjpeg-dev ninja-build
     - run: ./build.sh linux
     - run: ./build.sh emscripten
-    - run: ./build.sh emscripten-simd
+    - run: ./build.sh --simd emscripten
     - run: echo "Done!"
     - uses: actions/upload-artifact@v3
       with:
