@@ -29,3 +29,20 @@ Then, move on to the emscripten build:
 ## Pre-built binaries
 
 You don't need to build the libs you can grab from [Releases](https://github.com/webarkit/opencv-em/releases)
+
+## Use of pre-built binaries
+
+You can use FetchContent in a cmake project (CMakeLists.txt):
+
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+  build_opencv
+ URL https://github.com/webarkit/opencv-em/releases/download/0.1.4/opencv-4.7.0.zip
+)
+
+FetchContent_MakeAvailable(build_opencv)
+```
+
+or you can use [curl](https://github.com/curl/curl) or [bootstrapping](https://github.com/corporateshark/bootstrapping) to download the package and make it available to your project.
