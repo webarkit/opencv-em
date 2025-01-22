@@ -218,7 +218,7 @@ OPENCV_VERSION_STATUS="$(cat libs/opencv/modules/core/include/opencv2/core/versi
 OPENCV_VERSION="${OPENCV_VERSION_MAJOR}.${OPENCV_VERSION_MINOR}.${OPENCV_VERSION_REVISION}"
 VERSION=""
 if [ $BUILD_PYTHON ] ; then
-    VERSION="${OPENCV_VERSION}-emcc-3.1.26"
+    VERSION="${OPENCV_VERSION}-emcc-3.1.38"
 else
     VERSION=${OPENCV_VERSION}
 fi
@@ -259,16 +259,16 @@ OPENCV_CONF="${OPENCV_DEFINES} ${OPENCV_EXCLUDE} ${OPENCV_INCLUDE} ${OPENCV_MODU
 
 if [ $BUILD_PYTHON ] ; then
   echo "Building OpenCV for the web with Emscripten"
-  docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten"  emscripten/emsdk:3.1.26 emcmake python3 ./libs/opencv/platforms/js/build_js.py ${BUILD_HOME_BASE} --config="./opencv.webarkit_config.py" --build_wasm \
+  docker run --rm -v $(pwd):/src -u $(id -u):$(id -g)  emscripten/emsdk:3.1.38 emcmake python3 ./libs/opencv/platforms/js/build_js.py ${BUILD_HOME_BASE} --config="./opencv.webarkit_config.py" --build_wasm \
    ${OPENCV_EM_INTRINSICES} \
    ${OPENCV_EM_PTHREADS} \
-   --cmake_option="-DBUILD_opencv_dnn=OFF" \
-   --cmake_option="-DBUILD_opencv_objdetect=OFF" \
-   --cmake_option="-DBUILD_opencv_photo=OFF" \
-   --cmake_option="-DBUILD_opencv_imgcodecs=ON" \
-   --cmake_option="-DBUILD_opencv_xfeatures2d=ON"  \
-   --cmake_option="-DOPENCV_EXTRA_MODULES_PATH=./../libs/opencv_contrib/modules/" \
-   --build_flags="-Oz -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0"
+   --cmake_option="-DBUILD_opencv_dnn:BOOL=OFF" \
+   --cmake_option="-DBUILD_opencv_objdetect:BOOL=OFF" \
+   --cmake_option="-DBUILD_opencv_photo:BOOL=OFF" \
+   --cmake_option="-DBUILD_opencv_imgcodecs:BOOL=ON" \
+   --cmake_option="-DBUILD_opencv_xfeatures2d:BOOL=ON"  \
+   --cmake_option="-DOPENCV_EXTRA_MODULES_PATH=./../libs/opencv_contrib/modules/xfeatures2d" \
+   --build_flags=" -fwasm-exceptions -mbulk-memory -mnontrapping-fptoint -sWASM_BIGINT -sSUPPORT_LONGJMP=wasm "
 fi
 # /BUILD_PYTHON
 
