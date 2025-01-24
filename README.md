@@ -1,6 +1,7 @@
 # opencv-em
 
 A simple script utility to build with Emscripten OpenCV static libs. You can build the libs by yourself or grab them from a [Release](https://github.com/webarkit/opencv-em/releases)
+This project serves to build the OpenCV libraries for [WebARKitLib]([https://](https://github.com/webarkit/WebARKitLib/tree/dev)), but it can be customized to suit your specific needs.
 
 ## Building OpenCV with Emscripten
 
@@ -39,7 +40,7 @@ include(FetchContent)
 
 FetchContent_Declare(
   build_opencv
- URL https://github.com/webarkit/opencv-em/releases/download/0.1.4/opencv-4.7.0.zip
+ URL https://github.com/webarkit/opencv-em/releases/download/0.1.6/opencv-4.10.0.zip
 )
 
 FetchContent_MakeAvailable(build_opencv)
