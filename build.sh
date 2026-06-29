@@ -218,7 +218,7 @@ OPENCV_VERSION_STATUS="$(cat libs/opencv/modules/core/include/opencv2/core/versi
 OPENCV_VERSION="${OPENCV_VERSION_MAJOR}.${OPENCV_VERSION_MINOR}.${OPENCV_VERSION_REVISION}"
 VERSION=""
 if [ $BUILD_PYTHON ] ; then
-    VERSION="${OPENCV_VERSION}-emcc-3.1.38"
+    VERSION="${OPENCV_VERSION}-emcc-3.1.69"
 else
     VERSION=${OPENCV_VERSION}
 fi
@@ -259,7 +259,7 @@ OPENCV_CONF="${OPENCV_DEFINES} ${OPENCV_EXCLUDE} ${OPENCV_INCLUDE} ${OPENCV_MODU
 
 if [ $BUILD_PYTHON ] ; then
   echo "Building OpenCV for the web with Emscripten"
-  docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten" emscripten/emsdk:3.1.38 emcmake python3 ./libs/opencv/platforms/js/build_js.py ${BUILD_HOME_BASE} --config="./opencv.webarkit_config.py" --build_wasm \
+  docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten" emscripten/emsdk:3.1.69 emcmake python3 ./libs/opencv/platforms/js/build_js.py ${BUILD_HOME_BASE} --config="./opencv.webarkit_config.py" --build_wasm \
    ${OPENCV_EM_INTRINSICES} \
    ${OPENCV_EM_PTHREADS} \
    --cmake_option="-DBUILD_opencv_dnn=OFF" \
