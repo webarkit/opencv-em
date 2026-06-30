@@ -40,7 +40,7 @@ include(FetchContent)
 
 FetchContent_Declare(
   build_opencv
- URL https://github.com/webarkit/opencv-em/releases/download/0.1.6/opencv-4.10.0.zip
+ URL https://github.com/webarkit/opencv-em/releases/download/0.2.0/opencv-4.12.0.zip
 )
 
 FetchContent_MakeAvailable(build_opencv)
